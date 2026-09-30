@@ -91,21 +91,6 @@ The discrete covariance recursion does not use Monte Carlo sampling.
 A small covariance-balance residual checks equilibrium preservation, while the difference between discrete and continuous transient covariances measures time-discretization error.
 Finite ensemble estimates retain sampling error even when the discrete equilibrium covariance is preserved.
 
-Every run creates a distinct directory of the form
-
-```text
-example_harmonic_oscillator/YYYYMMDD_HHMMSS/
-```
-
-The directory contains `inputs.mat`, `results.mat`, `harmonic_moments.csv`, `run.log`, and copies of the executed script and integrator functions.
-The saved variables include the settings, operator, selected paths, final ensemble, moment histories, covariance errors and random-number-generator states.
-Four figures show displacement paths, stored velocity paths, displacement variance and velocity variance.
-Each figure is saved as `.fig`, `.eps` and `.png` with the same base filename.
-The variables remain available in the MATLAB workspace.
-The example is a small demonstration, not a script reproducing every figure in the manuscript.
-
-The regression script similarly writes its results under `test_integrator_PGLGV/YYYYMMDD_HHMMSS/`.
-Generated run directories are output data and need not be uploaded as repository source files.
 
 ## Requirements and validation
 
