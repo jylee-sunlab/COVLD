@@ -1,6 +1,5 @@
 # A covariance-matched Langevin integrator preserving harmonic equilibrium
 
-
 ## Files
 
 | File | Purpose |
@@ -119,7 +118,7 @@ Figs. 1 and 2 therefore show individual thermal trajectories in displacement and
 
 `fig_harmonic_displacement_variance` and `fig_harmonic_velocity_variance` compare four covariance quantities.
 
-**Canonical value — black line.**  
+**Canonical value (black line).**  
 This is the equilibrium target.
 
 ```math
@@ -139,7 +138,7 @@ The displacement and velocity variances are therefore
 \mathrm{Var}_{\mathrm{eq}}(v)=\frac{k_BT}{M}.
 ```
 
-**Ensemble — blue line.**  
+**Ensemble (blue line).**  
 This is the finite-ensemble covariance measured directly from the 20,000 simulated trajectories.
 With `L` trajectories,
 
@@ -165,7 +164,7 @@ With `L` trajectories,
 
 Thus, the ensemble curve is obtained from the stochastic trajectories themselves.
 
-**Discrete covariance recursion — red line.**  
+**Discrete covariance recursion (red line).**  
 This is the covariance of the discrete COVLD update computed directly, without trajectory sampling.
 
 ```math
@@ -196,7 +195,7 @@ For this example, `U = V = 0` initially, so
 \boldsymbol{\Sigma}_0^{\mathrm d}=\mathbf 0.
 ```
 
-**Continuous reference — green line.**  
+**Continuous reference (green line).**  
 This is the exact covariance of the continuous linear Langevin system.
 For the scalar oscillator,
 
@@ -248,10 +247,6 @@ The variance plots are normalized by the corresponding canonical values,
 ```
 
 so the canonical line is equal to one.
-
-The difference between **Ensemble** and **Discrete covariance recursion** is finite-ensemble sampling error.
-The difference between **Discrete covariance recursion** and **Continuous reference** is time-discretization error.
-At long times, the discrete covariance approaches the same canonical target by construction at an admissible time step.
 
 
 ## Requirements
