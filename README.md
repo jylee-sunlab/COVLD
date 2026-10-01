@@ -27,6 +27,8 @@ op = integrator_COVLD_setup(M, K, Z, kBT, dt);
 
 The physical displacement and velocity are collected in `U` and `V`.
 The constant physical mass, stiffness, and friction matrices are `M`, `K`, and `Z`.
+The prescribed deterministic external force is $\mathbf R(t)$, and $\boldsymbol{\beta}(t)$ is a zero-mean Gaussian white thermal force.
+The brackets denote ensemble expectation, and $\delta$ is the Dirac delta.
 The model is
 
 ```math
@@ -69,8 +71,9 @@ V = zeros(2,1);
 [U, V] = integrator_COVLD(op, U, V);
 ```
 
-Optional fourth and fifth arguments supply the physical external forces at the current and next time nodes.
-An optional sixth argument supplies the independent standard normal variables.
+Optional fourth and fifth arguments supply the physical external forces at the current and next time nodes, as `N`-by-1 or `N`-by-`L` arrays.
+An omitted or empty `R_n` is zero, and an omitted or empty `R_next` equals `R_n`.
+An optional sixth argument, `eta`, is a `2*N`-by-`L` array of independent standard normal variables.
 
 ```matlab
 R_n = zeros(op.N,1);
@@ -80,8 +83,9 @@ eta = randn(2*op.N,size(U,2));
 [U, V] = integrator_COVLD(op,U,V,R_n,R_next,eta);
 ```
 
-When `eta` is omitted, the function generates it with MATLAB `randn`.
-The displacement and velocity noise blocks use the same `eta` so that their required cross covariance is retained.
+When `eta` is omitted or empty, the function generates it with MATLAB `randn`.
+Supplied draws must be independent across trajectories and time steps and independent of the initial state.
+Within each trajectory and time step, the displacement and velocity noise blocks use the same `eta` to retain their required cross covariance.
 
 ## Harmonic oscillator example
 
@@ -116,7 +120,8 @@ Figs. 1 and 2 therefore show individual thermal trajectories in displacement and
 
 ### Figs. 3 and 4
 
-`fig_harmonic_displacement_variance` and `fig_harmonic_velocity_variance` compare four covariance quantities.
+`fig_harmonic_displacement_variance` and `fig_harmonic_velocity_variance` compare the normalized displacement and velocity variances, respectively.
+The four curves use the corresponding diagonal entries of the covariance matrices defined below.
 
 **Canonical value (black line).**  
 This is the equilibrium target.
@@ -182,6 +187,8 @@ where the covariance-matched increment satisfies
 ```math
 \mathbf Q
 =
+\mathbf G\mathbf G^{\mathrm T}
+=
 \boldsymbol{\Sigma}_{\mathrm{eq}}
 -
 \mathbf A
@@ -214,7 +221,7 @@ For the scalar oscillator,
 \right).
 ```
 
-The exact one-step covariance increment is
+The covariance of the exact one-step stochastic increment is
 
 ```math
 \mathbf Q_{\mathrm c}
