@@ -1,4 +1,4 @@
-%EXAMPLE_HARMONIC_OSCILLATOR
+% EXAMPLE_HARMONIC_OSCILLATOR
 % Thermal relaxation of a harmonic oscillator.
 % U = V = 0.
 
@@ -25,6 +25,7 @@ if exist(outputRoot,'dir') ~= 7
         error('COVLD:OutputDirectory','%s',message);
     end
 end
+
 while true
     runDirectory = fullfile(outputRoot, datestr(now,'yyyymmdd_HHMMSS'));
     if exist(runDirectory,'dir') ~= 7
@@ -197,6 +198,7 @@ try
     save(fullfile(runDirectory,'results.mat'),'run_status','-append');
     fprintf('Completed. MAT, CSV, source snapshots and FIG/EPS/PNG figures are saved.\n');
     diary off;
+    
 catch ME
     failure = struct('identifier',ME.identifier,'message',ME.message, ...
         'stack',ME.stack,'completed_steps',completed_steps,'run_status',run_status);
