@@ -138,9 +138,9 @@ k_BT/K & 0\\
 The displacement and velocity variances are therefore
 
 ```math
-\operatorname{Var}_{\mathrm{eq}}(u)=\frac{k_BT}{K},
+\mathrm{Var}_{\mathrm{eq}}(u)=\frac{k_BT}{K},
 \qquad
-\operatorname{Var}_{\mathrm{eq}}(v)=\frac{k_BT}{M}.
+\mathrm{Var}_{\mathrm{eq}}(v)=\frac{k_BT}{M}.
 ```
 
 **Ensemble — blue solid line.**  
@@ -248,7 +248,7 @@ The variance plots are normalized by the corresponding canonical values,
 ```math
 \frac{\mathrm{Var}(u)}{k_BT/K},
 \qquad
-\frac{\operatorname{Var}(v)}{k_BT/M},
+\frac{\mathrm{Var}(v)}{k_BT/M},
 ```
 
 so the canonical line is equal to one.
