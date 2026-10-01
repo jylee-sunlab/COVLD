@@ -1,33 +1,13 @@
-<<<<<<< HEAD
-%EXAMPLE_HARMONIC_OSCILLATOR 
-% Thermal relaxation of a harmonic oscillator.
-% The ensemble starts from U = V = 0, not from thermal equilibrium.
-
-
-%% Input parameters in consistent reduced units
-=======
 %EXAMPLE_HARMONIC_OSCILLATOR
 % Thermal relaxation of a harmonic oscillator.
 % U = V = 0.
 
 close all
->>>>>>> 731e7f0 (update)
 cfg = struct();
 cfg.M = 1.0;
 cfg.K = 1.0;
 cfg.Z = 1.0;
 cfg.kBT = 1.0;
-<<<<<<< HEAD
-cfg.dt = 0.1;
-cfg.t_end = 20.0;
-cfg.n_trajectories = 20000;
-cfg.n_paths_to_store = 4;
-cfg.seed = 2026;
-cfg.png_resolution = 300;
-
-
-%% Create an independent output directory and preserve the source files
-=======
 cfg.dt  = 0.1;
 cfg.t_end = 10.0;
 cfg.n_trajectories = 20000;
@@ -35,29 +15,12 @@ cfg.n_paths_to_store = 10;
 cfg.seed = 2026;
 cfg.png_resolution = 300;
 
->>>>>>> 731e7f0 (update)
 scriptPath = [mfilename('fullpath'), '.m'];
 [sourceDirectory, scriptName] = fileparts(scriptPath);
 addpath(sourceDirectory);
 outputRoot = fullfile(sourceDirectory, scriptName);
 if exist(outputRoot,'dir') ~= 7
     [ok, message] = mkdir(outputRoot);
-<<<<<<< HEAD
-    if ~ok, error('PGLGV:OutputDirectory','%s',message); end
-end
-while true
-    runDirectory = fullfile(outputRoot, datestr(now,'yyyymmdd_HHMMSS'));
-    if exist(runDirectory,'dir') ~= 7, break; end
-    pause(0.1);
-end
-[ok, message] = mkdir(runDirectory);
-if ~ok, error('PGLGV:OutputDirectory','%s',message); end
-sourceNames = {[scriptName,'.m'], 'integrator_PGLGV_setup.m', 'integrator_PGLGV.m'};
-for sourceIndex = 1:numel(sourceNames)
-    [ok, message] = copyfile(fullfile(sourceDirectory,sourceNames{sourceIndex}), ...
-        fullfile(runDirectory,sourceNames{sourceIndex}));
-    if ~ok, error('PGLGV:SourceSnapshot','%s',message); end
-=======
     if ~ok
         error('COVLD:OutputDirectory','%s',message);
     end
@@ -80,7 +43,6 @@ for sourceIndex = 1:numel(sourceNames)
     if ~ok
         error('COVLD:SourceSnapshot','%s',message);
     end
->>>>>>> 731e7f0 (update)
 end
 diary(fullfile(runDirectory,'run.log'));
 rng_before = rng;
@@ -99,16 +61,6 @@ try
     validateattributes(cfg.t_end, {'double'}, {'scalar','finite','positive'});
     nSteps = round(cfg.t_end/cfg.dt);
     if nSteps < 1 || abs(nSteps*cfg.dt-cfg.t_end) > 100*eps*max(1,cfg.t_end)
-<<<<<<< HEAD
-        error('PGLGV:TimeGrid','t_end must be an integer multiple of dt.');
-    end
-    time = (0:nSteps)'*cfg.dt;
-    op = integrator_PGLGV_setup(cfg.M,cfg.K,cfg.Z,cfg.kBT,cfg.dt);
-    fprintf('Harmonic oscillator with %d independent trajectories\n',cfg.n_trajectories);
-    fprintf('  M = %.6g, K = %.6g, Z = %.6g, kBT = %.6g\n', ...
-        cfg.M,cfg.K,cfg.Z,cfg.kBT);
-    fprintf('  dt = %.6g, t_end = %.6g, steps = %d, RNG seed = %d\n', ...
-=======
         error('COVLD:TimeGrid','t_end must be an integer multiple of dt.');
     end
     time = (0:nSteps)'*cfg.dt;
@@ -117,7 +69,6 @@ try
     fprintf('  M = %.6g, K = %.6g, Z = %.6g, kBT = %.6g\n', ...
         cfg.M,cfg.K,cfg.Z,cfg.kBT);
     fprintf('  dt = %.6g, t_end = %.6g, steps = %d, Seed = %d\n', ...
->>>>>>> 731e7f0 (update)
         cfg.dt,cfg.t_end,nSteps,cfg.seed);
     fprintf('  Scalar admissible step limit = %.9g\n',op.dt_limit);
     fprintf('  Scaled minimum covariance eigenvalue = %.6e\n', ...
@@ -126,12 +77,8 @@ try
         op.diagnostics.covariance_balance_residual);
     fprintf('  Output directory = %s\n',runDirectory);
 
-<<<<<<< HEAD
-    Ac = [0,1; -cfg.K/cfg.M,-cfg.Z/cfg.M];
-=======
     Ac = [0,1;
           -cfg.K/cfg.M,-cfg.Z/cfg.M];
->>>>>>> 731e7f0 (update)
     E = expm(cfg.dt*Ac);
     Qc = op.Sigma_eq-E*op.Sigma_eq*E';
     Qc = (Qc+Qc')/2;
@@ -155,18 +102,11 @@ try
     run_status = 'running';
 
     for stepIndex = 1:nSteps
-<<<<<<< HEAD
-        [U,V] = integrator_PGLGV(op,U,V);
-        Sigma_discrete = op.A*Sigma_discrete*op.A'+op.Q;
-        Sigma_continuous = E*Sigma_continuous*E'+Qc;
-        X = [U;V];
-=======
         [U,V] = integrator_COVLD(op,U,V);
         Sigma_discrete = op.A*Sigma_discrete*op.A'+op.Q;
         Sigma_continuous = E*Sigma_continuous*E'+Qc;
         X = [U;
              V];
->>>>>>> 731e7f0 (update)
         meanX = mean(X,2);
         X_centered = bsxfun(@minus,X,meanX);
         Sigma_sample = (X_centered*X_centered')/(cfg.n_trajectories-1);
@@ -216,32 +156,6 @@ try
         'covariance_sampling_error','covariance_time_error'});
     writetable(momentTable,fullfile(runDirectory,'harmonic_moments.csv'));
 
-<<<<<<< HEAD
-    fig = figure('Name','Harmonic displacement trajectories');
-    plot(time,paths_U,'LineWidth',1.0);
-    xlabel('Time'); ylabel('Displacement u'); grid on; box on;
-    local_save_figure(fig,runDirectory,'fig_harmonic_displacement',cfg.png_resolution);
-
-    fig = figure('Name','Harmonic velocity trajectories');
-    plot(time,paths_V,'LineWidth',1.0);
-    xlabel('Time'); ylabel('Stored endpoint velocity v'); grid on; box on;
-    local_save_figure(fig,runDirectory,'fig_harmonic_velocity',cfg.png_resolution);
-
-    names = {'displacement','velocity'};
-    labels = {'Displacement variance / (k_B*T/K)', ...
-        'Velocity variance / (k_B*T/M)'};
-    for component = 1:2
-        fig = figure('Name',['Harmonic ',names{component},' variance']);
-        targetVariance = op.Sigma_eq(component,component);
-        plot(time,moments_ensemble(:,component)/targetVariance,'-','LineWidth',2.0);
-        hold on;
-        plot(time,moments_discrete(:,component)/targetVariance,'--','LineWidth',1.5);
-        plot(time,moments_continuous(:,component)/targetVariance,':','LineWidth',1.5);
-        plot([time(1),time(end)],[1,1],'-.','LineWidth',1.5);
-        xlabel('Time'); ylabel(labels{component}); grid on; box on;
-        legend('Ensemble','Discrete covariance recursion','Continuous reference', ...
-            'Canonical value','Location','southeast');
-=======
     fig = figure('Name','Harmonic displacement trajectories','Color','w');
     plot(time,paths_U,'LineWidth',1.0);
     xlabel('Time');
@@ -276,7 +190,6 @@ try
         box on;
         legend('Canonical value','Ensemble','Discrete covariance recursion','Continuous reference', ...
             'Location','southeast');
->>>>>>> 731e7f0 (update)
         local_save_figure(fig,runDirectory, ...
             ['fig_harmonic_',names{component},'_variance'],cfg.png_resolution);
     end
@@ -294,10 +207,6 @@ catch ME
     rethrow(ME);
 end
 
-<<<<<<< HEAD
-%% helper
-=======
->>>>>>> 731e7f0 (update)
 function local_save_figure(fig,folder,baseName,resolution)
     set(fig,'PaperPositionMode','auto');
     savefig(fig,fullfile(folder,[baseName,'.fig']));
