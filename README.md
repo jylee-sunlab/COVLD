@@ -48,10 +48,6 @@ The model is
 2k_BT\,\mathbf Z\,\delta(t-t').
 ```
 
-Use consistent physical units.
-`kBT` is the thermal energy.
-Do not mass-normalize `K` or `Z` before supplying them with the physical `M`.
-
 `K` defines the number of degrees of freedom `N`.
 It may be a scalar, a vector of diagonal entries, or an `N`-by-`N` matrix.
 `M` and `Z` may additionally be scalars representing multiples of the identity.
@@ -92,7 +88,7 @@ The displacement and velocity noise blocks use the same `eta` so that their requ
 
 The default example uses `M = K = Z = kBT = 1`, `dt = 0.1`, and `t_end = 10` in reduced units.
 It advances 20,000 independent trajectories from `U = V = 0` and stores ten complete sample paths.
-The initial ensemble is therefore deliberately out of equilibrium.
+The initial ensemble is out of equilibrium.
 
 ### Figs. 1 and 2
 
@@ -123,7 +119,7 @@ Figs. 1 and 2 therefore show individual thermal trajectories in displacement and
 
 `fig_harmonic_displacement_variance` and `fig_harmonic_velocity_variance` compare four covariance quantities.
 
-**Canonical value — black solid line.**  
+**Canonical value — black line.**  
 This is the equilibrium target.
 
 ```math
@@ -143,7 +139,7 @@ The displacement and velocity variances are therefore
 \mathrm{Var}_{\mathrm{eq}}(v)=\frac{k_BT}{M}.
 ```
 
-**Ensemble — blue solid line.**  
+**Ensemble — blue line.**  
 This is the finite-ensemble covariance measured directly from the 20,000 simulated trajectories.
 With `L` trajectories,
 
@@ -169,7 +165,7 @@ With `L` trajectories,
 
 Thus, the ensemble curve is obtained from the stochastic trajectories themselves.
 
-**Discrete covariance recursion — red dashed line.**  
+**Discrete covariance recursion — red line.**  
 This is the covariance of the discrete COVLD update computed directly, without trajectory sampling.
 
 ```math
@@ -200,7 +196,7 @@ For this example, `U = V = 0` initially, so
 \boldsymbol{\Sigma}_0^{\mathrm d}=\mathbf 0.
 ```
 
-**Continuous reference — green dotted line.**  
+**Continuous reference — green line.**  
 This is the exact covariance of the continuous linear Langevin system.
 For the scalar oscillator,
 
@@ -257,11 +253,6 @@ The difference between **Ensemble** and **Discrete covariance recursion** is fin
 The difference between **Discrete covariance recursion** and **Continuous reference** is time-discretization error.
 At long times, the discrete covariance approaches the same canonical target by construction at an admissible time step.
 
-Each run saves MAT/CSV data, source snapshots, a log, and FIG/EPS/PNG figures under
-
-```text
-example_harmonic_oscillator/YYYYMMDD_HHMMSS/
-```
 
 ## Requirements
 
