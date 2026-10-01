@@ -1,5 +1,11 @@
-function op = integrator_PGLGV_setup(M, K, Z, kBT, dt)
-%INTEGRATOR_PGLGV_SETUP Prepare a covariance-matched Langevin integrator.
+function op = integrator_COVLD_setup(M, K, Z, kBT, dt)
+%INTEGRATOR_COVLD_SETUP Prepare a covariance-matched Langevin integrator.
+% Inputs are physical M, K and Z, thermal energy kBT, and time step dt.
+% K sets the dimension. Scalars, diagonal vectors and full matrices are accepted.
+% M, K and Z must be symmetric positive definite, with positive kBT and dt.
+% Mechanical Cholesky factors and a scaled noise factor are computed once.
+% Only numerically resolved strict-interior steps are accepted, without
+% eigenvalue clipping, diagonal jitter or automatic time-step adjustment.
 
     narginchk(5, 5);
     validateattributes(K, {'double'}, {'real','finite','nonempty','2d'}, ...
@@ -50,7 +56,8 @@ function op = integrator_PGLGV_setup(M, K, Z, kBT, dt)
         error('PGLGV:AssemblyRange', 'Matrix assembly overflowed. Rescale the problem or reduce dt.');
     end
 
-    dh = [dt^(3/2)*ones(N,1); sqrt(dt)*ones(N,1)];
+    dh = [dt^(3/2)*ones(N,1);
+          sqrt(dt)*ones(N,1)];
     if any(dh == 0) || any(~isfinite(dh))
         error('PGLGV:TimeScalingRange', 'The time-step scaling underflows or overflows.');
     end
@@ -61,7 +68,8 @@ function op = integrator_PGLGV_setup(M, K, Z, kBT, dt)
     end
     scaleFloor = sqrt(eps) * max(frictionDiagonal);
     d = sqrt(max(frictionDiagonal, scaleFloor));
-    d = [d; d];
+    d = [d;
+         d];
     H = F ./ (d*d');
     H = (H + H') / 2;
     scaledTermNorm = norm(termBound ./ (d*d'), 'fro');
@@ -96,10 +104,11 @@ function op = integrator_PGLGV_setup(M, K, Z, kBT, dt)
     Qh = kBT * ((dh*dh') .* F);
     Qh = (Qh + Qh') / 2;
 
-    A = [LM' \ (Ah(1:N,1:N)*LM'), LM' \ (Ah(1:N,N+1:end)*LM'); ...
+    A = [LM' \ (Ah(1:N,1:N)*LM'), LM' \ (Ah(1:N,N+1:end)*LM');
          LM' \ (Ah(N+1:end,1:N)*LM'), LM' \ (Ah(N+1:end,N+1:end)*LM')];
-    G = [LM' \ Gh(1:N,:); LM' \ Gh(N+1:end,:)];
-    Q = [LM' \ (Qh(1:N,1:N)/LM), LM' \ (Qh(1:N,N+1:end)/LM); ...
+    G = [LM' \ Gh(1:N,:);
+         LM' \ Gh(N+1:end,:)];
+    Q = [LM' \ (Qh(1:N,1:N)/LM), LM' \ (Qh(1:N,N+1:end)/LM);
          LM' \ (Qh(N+1:end,1:N)/LM), LM' \ (Qh(N+1:end,N+1:end)/LM)];
     Q = (Q + Q') / 2;
     RK = chol(Kh);
@@ -113,7 +122,13 @@ function op = integrator_PGLGV_setup(M, K, Z, kBT, dt)
     J = S0 \ (Gh/sqrt(kBT));
     balanceResidual = norm(eye(2*N) - W*W' - J*J', 'fro') / sqrt(2*N);
     physicalFactorResidual = norm(G*G' - Q, 'fro') / max(norm(Q,'fro'), realmin);
-    if any(~isfinite([A(:); G(:); Q(:); Sigma_eq(:); factorResidual; balanceResidual; physicalFactorResidual]))
+    if any(~isfinite([A(:);
+                      G(:);
+                      Q(:);
+                      Sigma_eq(:);
+                      factorResidual;
+                      balanceResidual;
+                      physicalFactorResidual]))
         error('PGLGV:NonfiniteBuild', 'The physical coefficients or residuals are not finite.');
     end
     if max([factorResidual, balanceResidual, physicalFactorResidual]) > residualTolerance
@@ -208,7 +223,8 @@ function [A,F,termBound] = local_scaled_blocks(K,C,h)
     Auv = (h/2)*R*(6*I-h*C);
     Avu = -h*T*K*(I+Auu);
     Avv = T*(2*I-h*C-h*K*Auv);
-    A = [Auu,Auv; Avu,Avv];
+    A = [Auu,Auv;
+         Avu,Avv];
     B = R*C*(12*I-h*C);
     f11a = 6*R*C*R;
     f11b = -(h/4)*R*(C*C+9*K)*R;
@@ -222,8 +238,9 @@ function [A,F,termBound] = local_scaled_blocks(K,C,h)
     F11 = f11a+f11b;
     F12 = f12a+f12b+f12c;
     F22 = f22a+f22b+f22c+f22d;
-    F = [F11,F12; F12',F22];
+    F = [F11,F12;
+         F12',F22];
     F = (F+F')/2;
-    termBound = [abs(f11a)+abs(f11b), abs(f12a)+abs(f12b)+abs(f12c); ...
+    termBound = [abs(f11a)+abs(f11b), abs(f12a)+abs(f12b)+abs(f12c);
         (abs(f12a)+abs(f12b)+abs(f12c))', abs(f22a)+abs(f22b)+abs(f22c)+abs(f22d)];
 end
