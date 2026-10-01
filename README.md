@@ -4,31 +4,18 @@
 
 | File | Purpose |
 |---|---|
-<<<<<<< HEAD
 | `integrator_PGLGV_setup.m` | Checks the inputs and time-step admissibility, constructs the noise factor, and factorizes the mechanical operators once. |
 | `integrator_PGLGV.m` | Advances displacement and stored endpoint velocity by one predictor–corrector step. |
-=======
-| `integrator_COVLD_setup.m` | Checks the inputs and time-step admissibility, constructs the noise factor, and factorizes the mechanical operators once. |
-| `integrator_COVLD.m` | Advances displacement and stored endpoint velocity by one predictor–corrector step. |
->>>>>>> 731e7f0 (update)
 | `example_harmonic_oscillator.m` | Runs a harmonic oscillator ensemble, compares its moments with discrete and continuous reference covariances, and saves the results. |
 
 ## Quick start
 
-<<<<<<< HEAD
-Place the four `.m` files in the same folder, make that folder the MATLAB current folder, and run
-=======
 Place the three `.m` files in the same folder, make that folder the MATLAB current folder, and run
->>>>>>> 731e7f0 (update)
 
 ```matlab
 example_harmonic_oscillator
 ```
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 731e7f0 (update)
 ## Model and inputs
 
 The physical displacement and velocity vectors are denoted by $\boldsymbol U$ and $\boldsymbol V$.
@@ -51,37 +38,24 @@ Do not mass-normalize `K` or `Z` before supplying them with the physical `M`.
 It can be a scalar, a vector of diagonal entries, or an `N`-by-`N` matrix.
 `M` and `Z` can additionally be scalars representing multiples of the identity.
 All inputs must be finite, real double-precision values.
-<<<<<<< HEAD
-=======
 `M`, `K` and `Z` must be symmetric positive definite, with positive `kBT` and `dt`.
 Only numerically resolved strictly admissible steps are accepted, without covariance clipping or automatic time-step adjustment.
->>>>>>> 731e7f0 (update)
 
 For `L` independent trajectories, use `N`-by-`L` state arrays.
 A multi-degree-of-freedom state is a column, not a row.
 For example, the same functions can be used without modal decoupling as follows.
 
 ```matlab
-<<<<<<< HEAD
-M = [2.0, 0.2; 0.2, 1.0];
-K = [3.0, -1.0; -1.0, 2.0];
-Z = [1.0, 0.1; 0.1, 0.8];
-op = integrator_PGLGV_setup(M, K, Z, 1.0, 0.05);
-U = zeros(2, 1);
-V = zeros(2, 1);
-[U, V] = integrator_PGLGV(op, U, V);
-=======
 M = [2.0, 0.2;
      0.2, 1.0];
 K = [3.0, -1.0;
      -1.0, 2.0];
 Z = [1.0, 0.1;
      0.1, 0.8];
-op = integrator_COVLD_setup(M, K, Z, 1.0, 0.05);
+op = integrator_PGLGV_setup(M, K, Z, 1.0, 0.05);
 U = zeros(2, 1);
 V = zeros(2, 1);
-[U, V] = integrator_COVLD(op, U, V);
->>>>>>> 731e7f0 (update)
+[U, V] = integrator_PGLGV(op, U, V);
 ```
 
 ### Prescribed forces and random variables
@@ -92,11 +66,7 @@ Each force can be `N`-by-1, shared by all trajectories, or `N`-by-`L`.
 ```matlab
 R_n = zeros(op.N, 1);
 R_next = zeros(op.N, 1);
-<<<<<<< HEAD
 [U, V] = integrator_PGLGV(op, U, V, R_n, R_next);
-=======
-[U, V] = integrator_COVLD(op, U, V, R_n, R_next);
->>>>>>> 731e7f0 (update)
 ```
 
 An omitted or empty `R_n` is zero.
@@ -105,11 +75,7 @@ The internal force is evaluated as `op.K*U` inside the step function.
 
 ```matlab
 eta = randn(2*op.N, size(U, 2));
-<<<<<<< HEAD
 [U, V] = integrator_PGLGV(op, U, V, R_n, R_next, eta);
-=======
-[U, V] = integrator_COVLD(op, U, V, R_n, R_next, eta);
->>>>>>> 731e7f0 (update)
 ```
 
 When `eta` is omitted or empty, the function uses MATLAB `randn` and the current random-number-generator state.
@@ -117,33 +83,12 @@ A supplied `eta` does not change the random-number-generator state.
 For the stated statistical properties, the draws must be independent across steps and trajectories and independent of the initial state.
 The two displacement and velocity noise blocks use the **same** `eta` to retain the required cross covariance.
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 731e7f0 (update)
 ## Harmonic oscillator example
 
 The default example uses `M = K = Z = kBT = 1`, `dt = 0.1`, and `t_end = 20` in reduced units.
 It advances 20,000 independent trajectories from zero displacement and velocity and stores four complete sample paths.
 The initial ensemble is deliberately out of equilibrium.
 
-<<<<<<< HEAD
-The example calculates the sample mean and centered covariance, the covariance of the discrete update, and an exact continuous reference obtained with `expm`.
-The discrete covariance recursion does not use Monte Carlo sampling.
-A small covariance-balance residual checks equilibrium preservation, while the difference between discrete and continuous transient covariances measures time-discretization error.
-Finite ensemble estimates retain sampling error even when the discrete equilibrium covariance is preserved.
-
-
-## Requirements and validation
-
-The scripts are written for MATLAB R2016b or later and use base MATLAB functions only.
-
-
-## Citation
-
-> J. Y. Lee, *A covariance-matched Langevin integrator preserving harmonic equilibrium*, submitted, 2026.
-
-=======
 ### Figures 1 and 2
 
 `fig_harmonic_displacement` and `fig_harmonic_velocity` show four independent stochastic realizations of the same integrator.
@@ -246,4 +191,3 @@ The scripts are written for MATLAB R2016b or later and use base MATLAB functions
 ## Citation
 
 > J. Y. Lee, *A covariance-matched Langevin integrator preserving harmonic equilibrium*, submitted, 2026.
->>>>>>> 731e7f0 (update)
