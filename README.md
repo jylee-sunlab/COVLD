@@ -1,7 +1,5 @@
-# COVLD
+# A covariance-matched Langevin integrator preserving harmonic equilibrium
 
-MATLAB implementation of the covariance-matched Langevin integrator described in  
-*A covariance-matched Langevin integrator preserving harmonic equilibrium*.
 
 ## Files
 
@@ -248,7 +246,7 @@ and the continuous reference is propagated as
 The variance plots are normalized by the corresponding canonical values,
 
 ```math
-\frac{\operatorname{Var}(u)}{k_BT/K},
+\frac{\mathrm{Var}(u)}{k_BT/K},
 \qquad
 \frac{\operatorname{Var}(v)}{k_BT/M},
 ```
