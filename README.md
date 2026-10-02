@@ -4,7 +4,7 @@
 
 | File | Purpose |
 |---|---|
-| `integrator_COVLD_setup.m` | Checks the inputs and time-step admissibility, constructs the covariance-matched noise factor, and factorizes the mechanical operators once. |
+| `integrator_COVLD_setup.m` | Constructs the covariance-matched noise factor and factorizes the mechanical operators once. |
 | `integrator_COVLD.m` | Advances displacement and stored endpoint velocity by one predictor-corrector step. |
 | `example_harmonic_oscillator.m` | Runs a harmonic oscillator ensemble and compares trajectory-based, discrete, continuous, and canonical statistics. |
 
@@ -49,10 +49,14 @@ The model is
 2k_BT\,\mathbf Z\,\delta(t-t').
 ```
 
+Use consistent physical units.
+`kBT` is the thermal energy $k_BT$.
+Do not mass-normalize `K` or `Z` before supplying them with the physical `M`.
+
 `K` defines the number of degrees of freedom `N`.
 It may be a scalar, a vector of diagonal entries, or an `N`-by-`N` matrix.
-`M` and `Z` may additionally be scalars representing multiples of the identity.
-The current setup requires symmetric positive-definite `M`, `K`, and `Z`, positive `kBT`, and a numerically resolved strictly admissible `dt`.
+`M` and `Z` may be scalar multiples of the identity, vectors of diagonal entries, or `N`-by-`N` matrices.
+The implementation assumes symmetric positive-definite `M`, `K`, and `Z`, positive `kBT`, and a strictly admissible `dt`.
 
 For `L` independent trajectories, `U` and `V` are `N`-by-`L` arrays with one trajectory per column.
 
@@ -72,32 +76,35 @@ V = zeros(2,1);
 ```
 
 Optional fourth and fifth arguments supply the physical external forces at the current and next time nodes, as `N`-by-1 or `N`-by-`L` arrays.
-An omitted or empty `R_n` is zero, and an omitted or empty `R_next` equals `R_n`.
+An omitted or empty `R_n` is zero, and an omitted or empty `R_np1` equals `R_n`.
 An optional sixth argument, `eta`, is a `2*N`-by-`L` array of independent standard normal variables.
 
 ```matlab
 R_n = zeros(op.N,1);
-R_next = zeros(op.N,1);
+R_np1 = zeros(op.N,1);
 eta = randn(2*op.N,size(U,2));
 
-[U, V] = integrator_COVLD(op,U,V,R_n,R_next,eta);
+[U, V] = integrator_COVLD(op,U,V,R_n,R_np1,eta);
 ```
 
 When `eta` is omitted or empty, the function generates it with MATLAB `randn`.
-Supplied draws must be independent across trajectories and time steps and independent of the initial state.
+The draws must be independent across trajectories and time steps and independent of the initial state.
 Within each trajectory and time step, the displacement and velocity noise blocks use the same `eta` to retain their required cross covariance.
 
 ## Harmonic oscillator example
 
-The default example uses `M = K = Z = kBT = 1`, `dt = 0.1`, and `t_end = 10` in reduced units.
+The default example uses `M = K = Z = kBT = 1`, `dt = 0.1`, and `tEnd = 10` in reduced units.
 It advances 20,000 independent trajectories from `U = V = 0` and stores ten complete sample paths.
 The initial ensemble is out of equilibrium.
+
+Each run creates a timestamped subfolder under `example_harmonic_oscillator` and saves the results, source snapshots, and FIG/EPS/PNG figures.
 
 ### Figs. 1 and 2
 
 `fig_harmonic_displacement` and `fig_harmonic_velocity` show ten independent stochastic realizations of the same COVLD integrator.
 The ten curves are different trajectories, not different numerical methods.
 
+This example has no prescribed external force.
 For trajectory `r`,
 
 ```math
@@ -115,7 +122,7 @@ v_n^{(r)}
 \end{bmatrix}.
 ```
 
-The Gaussian vectors are independent between trajectories and time steps.
+For this scalar oscillator, each Gaussian vector has two independent standard normal components.
 Figs. 1 and 2 therefore show individual thermal trajectories in displacement and velocity.
 
 ### Figs. 3 and 4
@@ -123,7 +130,7 @@ Figs. 1 and 2 therefore show individual thermal trajectories in displacement and
 `fig_harmonic_displacement_variance` and `fig_harmonic_velocity_variance` compare the normalized displacement and velocity variances, respectively.
 The four curves use the corresponding diagonal entries of the covariance matrices defined below.
 
-**Canonical value (black line).**  
+**Canonical value (black solid line).**  
 This is the equilibrium target.
 
 ```math
@@ -143,8 +150,8 @@ The displacement and velocity variances are therefore
 \mathrm{Var}_{\mathrm{eq}}(v)=\frac{k_BT}{M}.
 ```
 
-**Ensemble (blue line).**  
-This is the finite-ensemble covariance measured directly from the 20,000 simulated trajectories.
+**Ensemble (blue solid line).**  
+This is the finite-ensemble covariance measured directly from the simulated trajectories.
 With `L` trajectories,
 
 ```math
@@ -167,9 +174,9 @@ With `L` trajectories,
 \right)^{\mathrm T}.
 ```
 
-Thus, the ensemble curve is obtained from the stochastic trajectories themselves.
+The ensemble variance curves use all 20,000 trajectories, not only the ten stored sample paths.
 
-**Discrete covariance recursion (red line).**  
+**Discrete covariance recursion (red dashed line).**  
 This is the covariance of the discrete COVLD update computed directly, without trajectory sampling.
 
 ```math
@@ -182,7 +189,7 @@ This is the covariance of the discrete COVLD update computed directly, without t
 \mathbf Q,
 ```
 
-where the covariance-matched increment satisfies
+where
 
 ```math
 \mathbf Q
@@ -196,14 +203,14 @@ where the covariance-matched increment satisfies
 \mathbf A^{\mathrm T}.
 ```
 
-For this example, `U = V = 0` initially, so
+For this example,
 
 ```math
 \boldsymbol{\Sigma}_0^{\mathrm d}=\mathbf 0.
 ```
 
-**Continuous reference (green line).**  
-This is the exact covariance of the continuous linear Langevin system.
+**Continuous reference (green dotted line).**  
+This is the covariance of the continuous linear Langevin system evaluated at $t_n=n\Delta t$ without time-discretization error.
 For the scalar oscillator,
 
 ```math
@@ -242,7 +249,9 @@ and the continuous reference is propagated as
 \boldsymbol{\Sigma}_n^{\mathrm c}
 \mathbf E^{\mathrm T}
 +
-\mathbf Q_{\mathrm c}.
+\mathbf Q_{\mathrm c},
+\qquad
+\boldsymbol{\Sigma}_0^{\mathrm c}=\mathbf 0.
 ```
 
 The variance plots are normalized by the corresponding canonical values,
@@ -255,6 +264,9 @@ The variance plots are normalized by the corresponding canonical values,
 
 so the canonical line is equal to one.
 
+The difference between Ensemble and Discrete covariance recursion is finite-ensemble sampling error.
+The difference between Discrete covariance recursion and Continuous reference is time-discretization error.
+For the strictly admissible step used here, the discrete and continuous covariance sequences approach the canonical target at long times, while the finite ensemble retains sampling fluctuations.
 
 ## Requirements
 
