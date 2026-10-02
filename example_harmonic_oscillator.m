@@ -84,8 +84,8 @@ for j = 1:2
     hold on;
     plot([time(1),time(end)],[1,1],'-','LineWidth',1.5,'Color','k');
     plot(time,varE(:,j)/target,'-','LineWidth',1.5,'Color','b');
-    plot(time,varD(:,j)/target,'--','LineWidth',2.0,'Color','r');
-    plot(time,varC(:,j)/target,':','LineWidth',2.5,'Color','g');
+    plot(time,varD(:,j)/target,'--','LineWidth',2.5,'Color','r');
+    plot(time,varC(:,j)/target,':','LineWidth',2.0,'Color','g');
     xlabel('Time');
     ylabel(varianceLabels{j});
     ylim([0,1.2]);
