@@ -2,7 +2,9 @@
 % Thermal relaxation of a harmonic oscillator.
 % U = V = 0.
 
+clc
 close all
+
 cfg = struct();
 cfg.M = 1.0;
 cfg.K = 1.0;
@@ -19,12 +21,6 @@ scriptPath = [mfilename('fullpath'), '.m'];
 [sourceDirectory, scriptName] = fileparts(scriptPath);
 addpath(sourceDirectory);
 outputRoot = fullfile(sourceDirectory, scriptName);
-if exist(outputRoot,'dir') ~= 7
-    [ok, message] = mkdir(outputRoot);
-    if ~ok
-        error('COVLD:OutputDirectory','%s',message);
-    end
-end
 
 while true
     runDirectory = fullfile(outputRoot, datestr(now,'yyyymmdd_HHMMSS'));
@@ -34,16 +30,10 @@ while true
     pause(0.1);
 end
 [ok, message] = mkdir(runDirectory);
-if ~ok
-    error('COVLD:OutputDirectory','%s',message);
-end
 sourceNames = {[scriptName,'.m'], 'integrator_COVLD_setup.m', 'integrator_COVLD.m'};
 for sourceIndex = 1:numel(sourceNames)
     [ok, message] = copyfile(fullfile(sourceDirectory,sourceNames{sourceIndex}), ...
         fullfile(runDirectory,sourceNames{sourceIndex}));
-    if ~ok
-        error('COVLD:SourceSnapshot','%s',message);
-    end
 end
 diary(fullfile(runDirectory,'run.log'));
 rng_before = rng;
@@ -55,27 +45,13 @@ matlab_version = version;
 save(fullfile(runDirectory,'inputs.mat'), 'cfg', 'rng_before', 'rng_initial', 'matlab_version');
 
 try
-    validateattributes(cfg.n_trajectories, {'double'}, ...
-        {'scalar','integer','finite','>=',2});
-    validateattributes(cfg.n_paths_to_store, {'double'}, ...
-        {'scalar','integer','positive','<=',cfg.n_trajectories});
-    validateattributes(cfg.t_end, {'double'}, {'scalar','finite','positive'});
     nSteps = round(cfg.t_end/cfg.dt);
-    if nSteps < 1 || abs(nSteps*cfg.dt-cfg.t_end) > 100*eps*max(1,cfg.t_end)
-        error('COVLD:TimeGrid','t_end must be an integer multiple of dt.');
-    end
     time = (0:nSteps)'*cfg.dt;
     op = integrator_COVLD_setup(cfg.M,cfg.K,cfg.Z,cfg.kBT,cfg.dt);
     fprintf('Harmonic oscillator with %d independent trajectories\n',cfg.n_trajectories);
-    fprintf('  M = %.6g, K = %.6g, Z = %.6g, kBT = %.6g\n', ...
-        cfg.M,cfg.K,cfg.Z,cfg.kBT);
-    fprintf('  dt = %.6g, t_end = %.6g, steps = %d, Seed = %d\n', ...
-        cfg.dt,cfg.t_end,nSteps,cfg.seed);
+    fprintf('  M = %.6g, K = %.6g, Z = %.6g, kBT = %.6g\n', cfg.M,cfg.K,cfg.Z,cfg.kBT);
+    fprintf('  dt = %.6g, t_end = %.6g, steps = %d, Seed = %d\n', cfg.dt,cfg.t_end,nSteps,cfg.seed);
     fprintf('  Scalar admissible step limit = %.9g\n',op.dt_limit);
-    fprintf('  Scaled minimum covariance eigenvalue = %.6e\n', ...
-        op.diagnostics.scaled_minimum_eigenvalue);
-    fprintf('  Normalized covariance-balance residual = %.6e\n', ...
-        op.diagnostics.covariance_balance_residual);
     fprintf('  Output directory = %s\n',runDirectory);
 
     Ac = [0,1;
@@ -117,16 +93,13 @@ try
         moments_ensemble(row,:) = [Sigma_sample(1,1),Sigma_sample(2,2),Sigma_sample(1,2)];
         moments_discrete(row,:) = [Sigma_discrete(1,1),Sigma_discrete(2,2),Sigma_discrete(1,2)];
         moments_continuous(row,:) = [Sigma_continuous(1,1),Sigma_continuous(2,2),Sigma_continuous(1,2)];
-        covariance_sampling_error(row) = norm(op.S_eq \ ...
-            ((Sigma_sample-Sigma_discrete)/op.S_eq'),'fro')/sqrt(2);
-        covariance_time_error(row) = norm(op.S_eq \ ...
-            ((Sigma_discrete-Sigma_continuous)/op.S_eq'),'fro')/sqrt(2);
+        covariance_sampling_error(row) = norm(op.S_eq \ ((Sigma_sample-Sigma_discrete)/op.S_eq'),'fro')/sqrt(2);
+        covariance_time_error(row) = norm(op.S_eq \ ((Sigma_discrete-Sigma_continuous)/op.S_eq'),'fro')/sqrt(2);
         paths_U(row,:) = U(1:cfg.n_paths_to_store);
         paths_V(row,:) = V(1:cfg.n_paths_to_store);
         completed_steps = stepIndex;
         if mod(stepIndex,progressStride) == 0 || stepIndex == nSteps
-            fprintf('  Completed %d / %d steps in %.2f s\n', ...
-                stepIndex,nSteps,toc(simulationClock));
+            fprintf('  Completed %d / %d steps in %.2f s\n', stepIndex,nSteps,toc(simulationClock));
         end
     end
     elapsed_seconds = toc(simulationClock);
@@ -138,7 +111,6 @@ try
     fprintf('  Normalized displacement-velocity covariance = %.6e\n', ...
         moments_ensemble(end,3)/sqrt(op.Sigma_eq(1,1)*op.Sigma_eq(2,2)));
     fprintf('Maximum normalized covariance time-discretization error = %.6e\n',max(covariance_time_error));
-    fprintf('Finite ensemble variances retain sampling error.\n');
 
     save(fullfile(runDirectory,'results.mat'), 'cfg','op','time','paths_U','paths_V', ...
         'U','V','mean_U','mean_V','moments_ensemble','moments_discrete', ...
@@ -155,7 +127,6 @@ try
         'var_U_discrete','var_V_discrete','cov_UV_discrete', ...
         'var_U_continuous','var_V_continuous','cov_UV_continuous', ...
         'covariance_sampling_error','covariance_time_error'});
-    writetable(momentTable,fullfile(runDirectory,'harmonic_moments.csv'));
 
     fig = figure('Name','Harmonic displacement trajectories','Color','w');
     plot(time,paths_U,'LineWidth',1.0);
@@ -174,8 +145,7 @@ try
     local_save_figure(fig,runDirectory,'fig_harmonic_velocity',cfg.png_resolution);
 
     names = {'displacement','velocity'};
-    labels = {'Displacement variance / (k_BT/K)', ...
-        'Velocity variance / (k_BT/M)'};
+    labels = {'Displacement variance / (k_BT/K)', 'Velocity variance / (k_BT/M)'};
     for component = 1:2
         fig = figure('Name',['Harmonic ',names{component},' variance'],'Color','w');
         targetVariance = op.Sigma_eq(component,component);
@@ -189,14 +159,12 @@ try
         ylim([0 1.2])
         grid on;
         box on;
-        legend('Canonical value','Ensemble','Discrete covariance recursion','Continuous reference', ...
-            'Location','southeast');
-        local_save_figure(fig,runDirectory, ...
-            ['fig_harmonic_',names{component},'_variance'],cfg.png_resolution);
+        legend('Canonical value','Ensemble','Discrete covariance recursion','Continuous reference', 'Location','southeast');
+        local_save_figure(fig,runDirectory, ['fig_harmonic_',names{component},'_variance'],cfg.png_resolution);
     end
     run_status = 'completed';
     save(fullfile(runDirectory,'results.mat'),'run_status','-append');
-    fprintf('Completed. MAT, CSV, source snapshots and FIG/EPS/PNG figures are saved.\n');
+    fprintf('Completed.\n');
     diary off;
     
 catch ME
