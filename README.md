@@ -275,4 +275,4 @@ No additional toolbox is required.
 
 ## Citation
 
-> J. Y. Lee, *A covariance-matched Langevin integrator preserving harmonic equilibrium*, submitted, 2026.
+> J. Y. Lee, *Covariance matching and time-step admissibility for a Langevin integrator*, submitted, 2026.
