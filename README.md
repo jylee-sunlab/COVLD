@@ -1,4 +1,4 @@
-# A covariance-matched Langevin integrator preserving harmonic equilibrium
+# Covariance matching and time-step admissibility for a Langevin integrator
 
 ## Files
 
